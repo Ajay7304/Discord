@@ -7,6 +7,12 @@ import { useEffect } from 'react';
 
 import { useColorScheme } from '@/components/useColorScheme';
 
+import {StreamChat} from "stream-chat";
+
+const API_KEY = "jdt84drhah4m";
+
+const client = StreamChat.getInstance(API_KEY);
+
 export {
   // Catch any errors thrown by the Layout component.
   ErrorBoundary,
@@ -26,6 +32,26 @@ export default function RootLayout() {
     ...FontAwesome.font,
   });
 
+  const connectUser = async ()=>{
+  // Connect User
+    await client.connectUser(
+      {
+        id:"Ajay",
+        name:"Ajay",
+        image:"https://images.app.goo.gl/6STHG75ZBi15zDjN9"
+      },
+      client.devToken("Ajay")
+    )
+
+    //Create Channel
+    const channel = client.channel("team","general",{name:"General"})
+    await channel.create();
+  }
+
+  useEffect(()=>{
+    connectUser();
+    console.log('User Connected')
+  },[])
   // Expo Router uses Error Boundaries to catch errors in the navigation tree.
   useEffect(() => {
     if (error) throw error;
