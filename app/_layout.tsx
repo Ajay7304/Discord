@@ -1,4 +1,5 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { Text } from 'react-native';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useFonts } from 'expo-font';
@@ -9,7 +10,7 @@ import { useEffect, useState } from 'react';
 import { useColorScheme } from '@/components/useColorScheme';
 
 import {StreamChat} from "stream-chat";
-import {OverlayProvider,Chat,ChannelList} from "stream-chat-expo";
+import { OverlayProvider, Chat, ChannelList, Channel, MessageList, MessageInput} from "stream-chat-expo";
 
 const API_KEY = "jdt84drhah4m";
 
@@ -49,9 +50,9 @@ export default function RootLayout() {
     setIsReady(true);
 
     //Create Channel
-  //   const channel = client.channel("team","general",{name:"General"});
-  //   await channel.create();
-  // }
+    const channel = client.channel("team","general",{name:"General"});
+    await channel.create();
+  }
 
   useEffect(()=>{
     connectUser();
@@ -59,14 +60,11 @@ export default function RootLayout() {
   },[])
  
 
-  // const onChannelSelect = (channel)=>{
-  //   console.log(channel);
-  // }
 
   // Expo Router uses Error Boundaries to catch errors in the navigation tree.
-  useEffect(() => {
-    if (error) throw error;
-  }, [error]);
+  // useEffect(() => {
+  //   if (error) throw error;
+  // }, [error]);
 
   useEffect(() => {
     if (loaded || isReady) {
@@ -80,20 +78,34 @@ export default function RootLayout() {
 
   return <RootLayoutNav />;
 }
-}
+
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
+  const [selectedChannel , setSelectedChannel] = useState(null)
 
+  const onChannelSelect = (channel) => {
+    setSelectedChannel(channel);
+  }
   return (
     <GestureHandlerRootView style={{flex:1}}>
       <OverlayProvider>
         <Chat client={client}>
-          <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-            <ChannelList />
+          {!selectedChannel ? (<ChannelList onSelect={onChannelSelect} />) : (
+            <Channel channel={selectedChannel}>
+              <Text 
+                style={{ margin: 50}}
+                onPress={()=> setSelectedChannel(null)}
+              >
+                  GO BACK
+              </Text>
+              <MessageList/>
+              <MessageInput/>
+            </Channel>
+          ) }
+            
             {/* <Stack>
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             </Stack> */}
-          </ThemeProvider>
         </Chat>
       </OverlayProvider>
     </GestureHandlerRootView>
