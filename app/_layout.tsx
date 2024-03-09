@@ -1,13 +1,15 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 import { useColorScheme } from '@/components/useColorScheme';
 
 import {StreamChat} from "stream-chat";
+import {OverlayProvider,Chat,ChannelList} from "stream-chat-expo";
 
 const API_KEY = "jdt84drhah4m";
 
@@ -32,6 +34,7 @@ export default function RootLayout() {
     ...FontAwesome.font,
   });
 
+  const [isReady, setIsReady] = useState(false);
   const connectUser = async ()=>{
   // Connect User
     await client.connectUser(
@@ -42,42 +45,57 @@ export default function RootLayout() {
       },
       client.devToken("Ajay")
     )
+    
+    setIsReady(true);
 
     //Create Channel
-    const channel = client.channel("team","general",{name:"General"})
-    await channel.create();
-  }
+  //   const channel = client.channel("team","general",{name:"General"});
+  //   await channel.create();
+  // }
 
   useEffect(()=>{
     connectUser();
     console.log('User Connected')
   },[])
+ 
+
+  // const onChannelSelect = (channel)=>{
+  //   console.log(channel);
+  // }
+
   // Expo Router uses Error Boundaries to catch errors in the navigation tree.
   useEffect(() => {
     if (error) throw error;
   }, [error]);
 
   useEffect(() => {
-    if (loaded) {
+    if (loaded || isReady) {
       SplashScreen.hideAsync();
     }
   }, [loaded]);
 
-  if (!loaded) {
+  if (!loaded || !isReady) {
     return null;
   }
 
   return <RootLayoutNav />;
 }
-
+}
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      </Stack>
-    </ThemeProvider>
+    <GestureHandlerRootView style={{flex:1}}>
+      <OverlayProvider>
+        <Chat client={client}>
+          <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+            <ChannelList />
+            {/* <Stack>
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            </Stack> */}
+          </ThemeProvider>
+        </Chat>
+      </OverlayProvider>
+    </GestureHandlerRootView>
   );
 }
